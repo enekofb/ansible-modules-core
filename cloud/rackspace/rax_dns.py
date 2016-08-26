@@ -44,6 +44,10 @@ options:
     description:
       - Time to live of domain in seconds
     default: 3600
+  timeout:
+    description:
+      - Sets default 5 secs timeout period to a new one (greater than zero)
+    default: 5 secs
 notes:
   - "It is recommended that plays utilizing this module be run with
     C(serial: 1) to avoid exceeding the API request limit imposed by
@@ -73,7 +77,7 @@ except ImportError:
     HAS_PYRAX = False
 
 
-def rax_dns(module, comment, email, name, state, ttl):
+def rax_dns(module, comment, email, name, state, ttl, timeout):
     changed = False
 
     dns = pyrax.cloud_dns
@@ -81,6 +85,9 @@ def rax_dns(module, comment, email, name, state, ttl):
         module.fail_json(msg='Failed to instantiate client. This '
                              'typically indicates an invalid region or an '
                              'incorrectly capitalized region name.')
+
+    if timeout > 0:
+        dns.set_timeout(timeout)
 
     if state == 'present':
         if not email:
@@ -159,10 +166,11 @@ def main():
     name = module.params.get('name')
     state = module.params.get('state')
     ttl = module.params.get('ttl')
+    timeout = module.params.get('timeout')
 
     setup_rax_module(module, pyrax, False)
 
-    rax_dns(module, comment, email, name, state, ttl)
+    rax_dns(module, comment, email, name, state, ttl,timeout)
 
 
 # import module snippets
